@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alone in the Dark Maze</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            color: white;
+            font-family: sans-serif;
+            text-align: center;
+            background-color: black;
+        }
+
+        canvas {
+            display: block;
+            background: black;
+        }
+
+        #playButton {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 48px;
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+            cursor: pointer;
+            text-align: center;
+            outline: none;
+        }
+
+        #playButton:hover {
+            background-color: white;
+            color: black;
+        }
+
+        #description {
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 450px;
+            color: white;
+            font-size: 20px;
+            line-height: 1.5;
+            text-align: justify;
+        }
+
+        .controls {
+            display: none;
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            left: 0;
+            text-align: center;
+        }
+
+        .controls-left {
+            position: fixed;
+            bottom: 10px;
+            left: 10%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .controls-right {
+            position: fixed;
+            bottom: 10px;
+            right: 10%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-button {
+            width: 60px;
+            height: 60px;
+            margin: 5px;
+            font-size: 30px;
+            border-radius: 50%;
+            background-color: white;
+            color: black;
+            border: none;
+            opacity: 0.7;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .control-button:active {
+            background-color: gray;
+        }
+
+        .controls-left, .controls-right {
+            display: inline-block;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+<button id="playButton">CLICK TO PLAY</button>
+
+<div id="description">
+    A little ghost is lost in a maze among the living. Help it find the way out using the arrow keys (left, right, up, down). Be careful—there might be others in the darkness, and each step increases the chance of being discovered.
+</div>
+
+<div class="controls" id="mobileControls">
+    <div class="controls-left">
+        <button class="control-button" id="up">&#8593;</button><br/>
+        <button class="control-button" id="down">&#8595;</button>
+    </div>
+    <div class="controls-right">
+        <button class="control-button" id="left">&#8592;</button>
+        <button class="control-button" id="right">&#8594;</button>
+    </div>
+</div>
+
+<script src="src/input.js"></script>
+<script src="src/maze.js"></script>
+<script src="src/sprite.js"></script>
+<script src="src/gameobject.js"></script>
+<script src="src/gameloop.js"></script>
+<script src="src/gamecontroller.js"></script>
+
+<script>
+    const keyboard = new KeyboardEventTracker(window);
+    const canvas = document.getElementById('gameCanvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+    const tileSize = Math.min(canvas.width / 30, canvas.height / 20);
+
+    let game = new GameLoop(60, new MainGameController(), new FpsCounter((fps) => console.log(fps)));
+
+    const playButton = document.getElementById('playButton');
+    const description = document.getElementById('description');
+
+    playButton.addEventListener('click', () => {
+        playButton.style.display = 'none';
+        description.style.display = 'none';
+        game.start();
+    });
+
+    function simulateKeyPress(key) {
+        const event = new KeyboardEvent('keydown', { key: key });
+        window.dispatchEvent(event);
+    }
+
+    function simulateKeyRelease(key) {
+        const event = new KeyboardEvent('keyup', { key: key });
+        window.dispatchEvent(event);
+    }
+
+    function preventDefault(event) {
+        event.preventDefault();
+    }
+
+    document.getElementById('left').addEventListener('touchstart', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowLeft');
+    });
+    document.getElementById('left').addEventListener('mousedown', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowLeft');
+    });
+
+    document.getElementById('left').addEventListener('touchend', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowLeft');
+    });
+    document.getElementById('left').addEventListener('mouseup', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowLeft');
+    });
+
+    document.getElementById('right').addEventListener('touchstart', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowRight');
+    });
+    document.getElementById('right').addEventListener('mousedown', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowRight');
+    });
+
+    document.getElementById('right').addEventListener('touchend', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowRight');
+    });
+    document.getElementById('right').addEventListener('mouseup', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowRight');
+    });
+
+    document.getElementById('up').addEventListener('touchstart', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowUp');
+    });
+    document.getElementById('up').addEventListener('mousedown', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowUp');
+    });
+
+    document.getElementById('up').addEventListener('touchend', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowUp');
+    });
+    document.getElementById('up').addEventListener('mouseup', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowUp');
+    });
+
+    document.getElementById('down').addEventListener('touchstart', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowDown');
+    });
+    document.getElementById('down').addEventListener('mousedown', (event) => {
+        preventDefault(event);
+        simulateKeyPress('ArrowDown');
+    });
+
+    document.getElementById('down').addEventListener('touchend', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowDown');
+    });
+    document.getElementById('down').addEventListener('mouseup', (event) => {
+        preventDefault(event);
+        simulateKeyRelease('ArrowDown');
+    });
+
+    function isMobileDevice() {
+        return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+    }
+
+    if (isMobileDevice()) {
+        document.getElementById('mobileControls').style.display = 'block';
+    }
+
+    // for debug mode
+    //document.getElementById('mobileControls').style.display = 'block';
+
+</script>
+
+</body>
+</html>
